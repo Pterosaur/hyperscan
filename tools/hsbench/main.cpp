@@ -35,6 +35,9 @@
 #include "engine_chimera.h"
 #include "engine_pcre.h"
 #endif
+
+#include "engine_re2.h"
+
 #include "expressions.h"
 #include "sqldb.h"
 #include "thread_barrier.h"
@@ -97,6 +100,9 @@ bool display_per_scan = false;
 ScanMode scan_mode = ScanMode::STREAMING;
 bool useHybrid = false;
 bool usePcre = false;
+
+bool useRe2 = false;
+
 unsigned repeats = 20;
 string exprPath("");
 string corpusFile("");
@@ -205,6 +211,9 @@ void usage(const char *error) {
     printf("  -H              Benchmark using Chimera (if supported).\n");
     printf("  -P              Benchmark using PCRE (if supported).\n");
 #endif
+
+    printf("  -R              Benchmark using RE2 (if supported).\n");
+
 #if defined(HAVE_DECL_PTHREAD_SETAFFINITY_NP) || defined(_WIN32)
     printf("  -T CPU,CPU,...  Benchmark with threads on these CPUs.\n");
 #endif
@@ -238,7 +247,7 @@ struct BenchmarkSigs {
 static
 void processArgs(int argc, char *argv[], vector<BenchmarkSigs> &sigSets,
                  UNUSED unique_ptr<Grey> &grey) {
-    const char options[] = "-b:c:Cd:e:E:G:hHi:n:No:p:PsS:Vw:z:"
+    const char options[] = "-b:c:Cd:e:E:G:hHi:n:No:p:PsS:Vw:z:R"
 #if defined(HAVE_DECL_PTHREAD_SETAFFINITY_NP) || defined(_WIN32)
         "T:" // add the thread flag
 #endif
@@ -334,6 +343,11 @@ void processArgs(int argc, char *argv[], vector<BenchmarkSigs> &sigSets,
             exit(1);
 #endif
             break;
+
+        case 'R':
+            useRe2 = true;
+            break;
+
         case 's':
             in_sigfile = 2;
             break;
@@ -1040,6 +1054,10 @@ int HS_CDECL main(int argc, char *argv[]) {
             } else if (usePcre) {
                 engine = buildEnginePcre(exprMap, s.name, sigName);
 #endif
+
+            } else if (useRe2) {
+                engine = buildEngineRe2(exprMap, s.name, sigName);
+
             } else {
                 engine = buildEngineHyperscan(exprMap, scan_mode, s.name,
                                               sigName, *grey);

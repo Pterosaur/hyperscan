@@ -35,6 +35,8 @@ SET(hsbench_SOURCES
     engine.h
     engine_hyperscan.cpp
     engine_hyperscan.h
+    engine_re2.cpp
+    engine_re2.h
     heapstats.cpp
     heapstats.h
     huge.cpp
@@ -62,13 +64,13 @@ add_executable(hsbench ${hsbench_SOURCES})
 if (BUILD_CHIMERA)
     include_directories(${PCRE_INCLUDE_DIRS})
     if(NOT WIN32)
-        target_link_libraries(hsbench hs chimera ${PCRE_LDFLAGS} databaseutil
+        target_link_libraries(hsbench hs chimera ${PCRE_LDFLAGS} re2 databaseutil
             expressionutil ${SQLITE3_LDFLAGS} ${CMAKE_THREAD_LIBS_INIT})
     else()
-        target_link_libraries(hsbench hs chimera pcre databaseutil
+        target_link_libraries(hsbench hs chimera pcre re2 databaseutil
             expressionutil ${SQLITE3_LDFLAGS} ${CMAKE_THREAD_LIBS_INIT})
     endif()
 else()
-    target_link_libraries(hsbench hs databaseutil expressionutil
+    target_link_libraries(hsbench hs databaseutil re2 expressionutil
         ${SQLITE3_LDFLAGS} ${CMAKE_THREAD_LIBS_INIT})
 endif()
